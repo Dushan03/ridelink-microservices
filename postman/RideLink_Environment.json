@@ -1,0 +1,49 @@
+{
+  "id": "ridelink-env",
+  "name": "RideLink Local Environment",
+  "values": [
+    {
+      "key": "account_url",
+      "value": "http://localhost:8081",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "fare_url",
+      "value": "http://localhost:8084",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "accountId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "fareId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "fareAmount",
+      "value": "0",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

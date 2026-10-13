@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RideLink — Distributed Microservices Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- TOP NAVIGATION -->
+        <header class="top-nav">
+            <div class="brand-container">
+                <div class="brand-logo">
+                    <span class="logo-icon">🚗</span>
+                    <span class="brand-name">Ride<span>Link</span></span>
+                </div>
+                <div class="cluster-status-row" id="clusterStatusRow">
+                    <span class="service-chip" id="chipAccount" title="Account Service (8081)">Account :8081 <span class="chip-dot"></span></span>
+                    <span class="service-chip" id="chipDriver" title="Driver Service (8082)">Driver :8082 <span class="chip-dot"></span></span>
+                    <span class="service-chip" id="chipRide" title="Ride Service (8083)">Ride :8083 <span class="chip-dot"></span></span>
+                    <span class="service-chip" id="chipFare" title="Fare & Payment (8084)">Fare :8084 <span class="chip-dot"></span></span>
+                </div>
+            </div>
+
+            <div class="nav-controls">
+                <button class="btn btn-outline btn-sm" id="btnOpenConfig" title="Configure Microservice IP / Port endpoints">
+                    <span>⚙️ Network IPs</span>
+                </button>
+                <div class="dropdown-swagger">
+                    <button class="btn btn-outline btn-sm" id="btnSwaggerDropdown">
+                        <span>📖 Swagger Docs ▾</span>
+                    </button>
+                    <div class="dropdown-menu" id="swaggerMenu">
+                        <a href="http://localhost:8081/swagger-ui/index.html" target="_blank" id="linkSwagAccount">🔐 Account Service (8081)</a>
+                        <a href="http://localhost:8082/swagger-ui/index.html" target="_blank" id="linkSwagDriver">🚖 Driver Service (8082)</a>
+                        <a href="http://localhost:8083/swagger-ui/index.html" target="_blank" id="linkSwagRide">🗺️ Ride Service (8083)</a>
+                        <a href="http://localhost:8084/swagger-ui/index.html" target="_blank" id="linkSwagFare">💳 Fare & Payment (8084)</a>
+                    </div>
+                </div>
+                <button class="btn btn-icon" id="themeToggle" title="Toggle Dark/Light Mode">🌓</button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <!-- LEFT CONTROL PANEL (Navigation & Views) -->
+            <section class="panel left-panel">
+                <div class="tab-navigation">
+                    <button class="tab-btn active" data-tab="tab-auth">
+                        <span class="tab-icon">🔐</span> Auth & Users
+                    </button>
+                    <button class="tab-btn" data-tab="tab-rides">
+                        <span class="tab-icon">🗺️</span> Book & Rides
+                    </button>
+                    <button class="tab-btn" data-tab="tab-drivers">
+                        <span class="tab-icon">🚖</span> Driver Hub
+                    </button>
+                    <button class="tab-btn" data-tab="tab-payments">
+                        <span class="tab-icon">💳</span> Fares & Pay
+                    </button>
+                    <button class="tab-btn" data-tab="tab-profile">
+                        <span class="tab-icon">👤</span> My Profile
+                    </button>
+                    <button class="tab-btn" data-tab="tab-admin">
+                        <span class="tab-icon">🛡️</span> Admin
+                    </button>
+                </div>
+
+                <div class="tab-body">
+                    <!-- ========================================================= -->
+                    <!-- TAB 1: AUTHENTICATION & LOGIN (Port 8081) -->
+                    <!-- ========================================================= -->
+                    <div class="tab-pane active" id="tab-auth">
+                        <div class="subtab-header">
+                            <button class="subtab-btn active" id="subtab-login-btn">Sign In</button>
+                            <button class="subtab-btn" id="subtab-register-btn">Register Account</button>
+                        </div>
+
+                        <!-- LOGIN FORM -->
+                        <div class="form-container" id="loginFormContainer">
+                            <div class="section-title">
+                                <h3>Account Login</h3>
+                                <p>Authenticate with Account Service (Port 8081) to get an HMAC-SHA256 JWT.</p>
+                            </div>
+                            <form id="formLogin">
+                                <div class="form-group">
+                                    <label for="loginEmail">Email Address</label>
+                                    <input type="email" id="loginEmail" placeholder="e.g. passenger@ridelink.com" required value="passenger@ridelink.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="loginPassword">Password</label>
+                                    <input type="password" id="loginPassword" placeholder="Enter password" required value="Password123!">
+                                </div>
+                                <div class="quick-creds-row">
+                                    <span class="quick-label">Quick fill:</span>
+                                    <button type="button" class="btn-chip" onclick="setQuickLogin('passenger@ridelink.com', 'Password123!')">Passenger</button>
+                                    <button type="button" class="btn-chip" onclick="setQuickLogin('driver@ridelink.com', 'Password123!')">Driver</button>
+                                    <button type="button" class="btn-chip" onclick="setQuickLogin('admin@ridelink.com', 'Admin123!')">Admin</button>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block" id="btnSubmitLogin">
+                                    <span>Log In & Connect</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- REGISTER FORM -->
+                        <div class="form-container hidden" id="registerFormContainer">
+                            <div class="section-title">
+                                <h3>Create Account</h3>
+                                <p>Register as Passenger or Driver. Passwords hashed securely with BCrypt.</p>
+                            </div>
+                            <form id="formRegister">
+                                <div class="form-group">
+                                    <label>Role</label>
+                                    <div class="role-selector">
+                                        <label class="role-option">
+                                            <input type="radio" name="regRole" value="PASSENGER" checked>
+                                            <div class="role-card">
+                                                <span class="role-icon">🎒</span>
+                                                <span class="role-title">Passenger</span>
+                                            </div>
+                                        </label>
+                                        <label class="role-option">
+                                            <input type="radio" name="regRole" value="DRIVER">
+                                            <div class="role-card">
+                                                <span class="role-icon">🚖</span>
+                                                <span class="role-title">Driver</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="regName">Full Name</label>
+                                        <input type="text" id="regName" placeholder="Alex Silva" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="regPhone">Phone (Sri Lanka)</label>
+                                        <input type="tel" id="regPhone" placeholder="+94771234567" required value="+94771234567">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="regEmail">Email Address</label>
+                                    <input type="email" id="regEmail" placeholder="alex@ridelink.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="regPassword">Password (Min 8 chars, 1 uppercase, 1 digit)</label>
+                                    <input type="password" id="regPassword" placeholder="StrongPass123!" required value="Password123!">
+                                </div>
+                                <button type="submit" class="btn btn-accent btn-block" id="btnSubmitRegister">
+                                    <span>Complete Registration</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================= -->
+                    <!-- TAB 2: RIDE MANAGEMENT & BOOKING (Port 8083) -->
+                    <!-- ========================================================= -->
+                    <div class="tab-pane" id="tab-rides">
+                        <div class="section-title">
+                            <h3>Passenger Ride Booking</h3>
+                            <p>Estimate fares, book rides with auto-driver discovery, and track status lifecycle.</p>
+                        </div>
+
+                        <!-- ROUTE SELECTOR -->
+                        <div class="card-box">
+                            <h4>1. Select Trip Locations & Vehicle</h4>
+                            <div class="form-group">
+                                <label>Presets (Colombo Area):</label>
+                                <div class="presets-row">
+                                    <button type="button" class="btn-chip" onclick="setPresetRoute('Fort Railway Station', 6.9344, 79.8500, 'Galle Face Green', 6.9271, 79.8446)">Fort ➔ Galle Face (2.1 km)</button>
+                                    <button type="button" class="btn-chip" onclick="setPresetRoute('SLIIT Malabe Campus', 6.9147, 79.9733, 'Colombo Town Hall', 6.9147, 79.8660)">SLIIT ➔ Town Hall (12.5 km)</button>
+                                    <button type="button" class="btn-chip" onclick="setPresetRoute('Kollupitiya Junction', 6.8985, 79.8540, 'BIA Airport', 7.1808, 79.8841)">Kollupitiya ➔ Airport (34 km)</button>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ridePickupName">Pickup Location Name</label>
+                                    <input type="text" id="ridePickupName" value="Colombo Fort" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rideDropoffName">Dropoff Location Name</label>
+                                    <input type="text" id="rideDropoffName" value="Galle Face Green" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row coords-row">
+                                <div class="form-group">
+                                    <label>Pickup (Lat / Lng)</label>
+                                    <div class="inline-inputs">
+                                        <input type="number" step="0.0001" id="ridePickupLat" value="6.9344" required>
+                                        <input type="number" step="0.0001" id="ridePickupLng" value="79.8428" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dropoff (Lat / Lng)</label>
+                                    <div class="inline-inputs">
+                                        <input type="number" step="0.0001" id="rideDropoffLat" value="6.9271" required>
+                                        <input type="number" step="0.0001" id="rideDropoffLng" value="79.8446" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="rideVehicleType">Vehicle Type</label>
+                                <select id="rideVehicleType" class="custom-select">
+                                    <option value="CAR">🚗 Car (Standard)</option>
+                                    <option value="VAN">🚐 Van (Large Capacity)</option>
+                                    <option value="TUK_TUK">🛺 Tuk-Tuk (Budget)</option>
+                                    <option value="BIKE">🏍️ Motorbike (Fast)</option>
+                                </select>
+                            </div>
+
+                            <div class="button-row">
+                                <button type="button" class="btn btn-outline" id="btnCalculateEstimate">
+                                    <span>💵 Calculate Fare Estimate</span>
+                                </button>
+                                <button type="button" class="btn btn-primary" id="btnRequestRide">
+                                    <span>🚀 Request Ride Now</span>
+                                </button>
+                            </div>
+
+                            <!-- ESTIMATE RESULT CARD -->
+                            <div id="estimateResultCard" class="alert-box info-alert hidden">
+                                <div class="est-header">
+                                    <strong>Fare Estimate:</strong> <span class="est-amount" id="estAmountDisplay">LKR 0.00</span>
+                                </div>
+                                <div class="est-details" id="estDetailsDisplay">Distance: 0 km | Approx Duration: 0 mins</div>
+                            </div>
+                        </div>
+
+                        <!-- ACTIVE RIDE STATUS & LIFECYCLE TRACKER -->
+                        <div class="card-box" id="activeRideCard">
+                            <div class="flex-between">
+                                <h4>2. Active Ride Tracker</h4>
+                                <button type="button" class="btn btn-xs btn-outline" id="btnRefreshActiveRide">🔄 Check Status</button>
+                            </div>
+
+                            <div id="noActiveRidePlaceholder" class="placeholder-text">
+                                No active ride in progress. Calculate fare and click "Request Ride Now" above!
+                            </div>
+
+                            <div id="activeRideDetails" class="hidden">
+                                <!-- STATUS STEPPER -->
+                                <div class="status-stepper">
+                                    <div class="step" id="step-REQUESTED">
+                                        <div class="step-circle">1</div>
+                                        <div class="step-label">Requested</div>
+                                    </div>
+                                    <div class="step" id="step-ASSIGNED">
+                                        <div class="step-circle">2</div>
+                                        <div class="step-label">Assigned</div>
+                                    </div>
+                                    <div class="step" id="step-ACCEPTED">
+                                        <div class="step-circle">3</div>
+                                        <div class="step-label">Accepted</div>
+                                    </div>
+                                    <div class="step" id="step-IN_PROGRESS">
+                                        <div class="step-circle">4</div>
+                                        <div class="step-label">In Transit</div>
+                                    </div>
+                                    <div class="step" id="step-COMPLETED">
+                                        <div class="step-circle">5</div>
+                                        <div class="step-label">Completed</div>
+                                    </div>
+                                </div>
+
+                                <div class="ride-summary-grid">
+                                    <div><strong>Ride ID:</strong> <span id="activeRideId" class="copyable">-</span></div>
+                                    <div><strong>Status:</strong> <span class="badge" id="activeRideStatusBadge">REQUESTED</span></div>
+                                    <div><strong>Estimated Fare:</strong> <span id="activeRideFareDisplay">-</span></div>
+                                    <div><strong>Driver:</strong> <span id="activeRideDriverDisplay">Searching for driver...</span></div>
+                                </div>
+
+                                <div class="button-row margin-top">
+                                    <button type="button" class="btn btn-outline btn-sm" id="btnRetryDriverAssign">🔄 Retry Driver Matching</button>
+                                    <button type="button" class="btn btn-danger btn-sm" id="btnCancelRide">❌ Cancel Ride</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PASSENGER RIDE HISTORY -->
+                        <div class="card-box">
+                            <div class="flex-between">
+                                <h4>3. My Ride History</h4>
+                                <button type="button" class="btn btn-xs btn-outline" id="btnLoadMyRides">Refresh History</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table" id="tablePassengerRides">
+                                    <thead>
+                                        <tr>
+                                            <th>Ride ID</th>
+                                            <th>From ➔ To</th>
+                                            <th>Vehicle</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="5" class="text-center">Click "Refresh History" to load past rides</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================= -->
+                    <!-- TAB 3: DRIVER HUB (Port 8082 + 8083 Driver Actions) -->
+                    <!-- ========================================================= -->
+                    <div class="tab-pane" id="tab-drivers">
+                        <div class="section-title">
+                            <h3>Driver Fleet & Operations</h3>
+                            <p>Manage vehicle, availability, simulated GPS location, and advance assigned trip lifecycles.</p>
+                        </div>
+
+                        <!-- DRIVER PROFILE & VEHICLE REGISTRATION -->
+                        <div class="card-box">
+                            <h4>1. Operational Profile & Availability</h4>
+                            <div class="driver-status-bar">
+                                <div>
+                                    <span class="meta-label">Current Availability:</span>
+                                    <span class="badge" id="driverAvailabilityBadge">UNKNOWN</span>
+                                </div>
+                                <div class="toggle-group">
+                                    <button type="button" class="btn btn-sm btn-success" id="btnSetAvailable">🟢 Go AVAILABLE</button>
+                                    <button type="button" class="btn btn-sm btn-secondary" id="btnSetOffline">⚪ Go OFFLINE</button>
+                                </div>
+                            </div>
+
+                            <form id="formDriverProfile" class="margin-top">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="driverLicenseNo">Driving License Number</label>
+                                        <input type="text" id="driverLicenseNo" placeholder="B1234567" required value="B9876543">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="driverLicenseExp">License Expiry Date</label>
+                                        <input type="date" id="driverLicenseExp" required value="2030-12-31">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="driverServiceArea">Service Area</label>
+                                        <input type="text" id="driverServiceArea" placeholder="Colombo" value="Colombo">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Simulated GPS (Lat / Lng)</label>
+                                        <div class="inline-inputs">
+                                            <input type="number" step="0.0001" id="driverLat" value="6.9340">
+                                            <input type="number" step="0.0001" id="driverLng" value="79.8450">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="button-row">
+                                    <button type="submit" class="btn btn-primary btn-sm">Save Profile & GPS</button>
+                                    <button type="button" class="btn btn-outline btn-sm" id="btnRefreshDriverProfile">🔄 Load Driver Profile</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- VEHICLE REGISTRATION -->
+                        <div class="card-box">
+                            <h4>2. Register Vehicle</h4>
+                            <form id="formRegisterVehicle">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="vehRegNo">Plate / Reg Number</label>
+                                        <input type="text" id="vehRegNo" placeholder="WP-CAB-1234" required value="WP-CAB-1234">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="vehType">Vehicle Type</label>
+                                        <select id="vehType" class="custom-select">
+                                            <option value="CAR">Car</option>
+                                            <option value="VAN">Van</option>
+                                            <option value="TUK_TUK">Tuk-Tuk</option>
+                                            <option value="BIKE">Motorbike</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="vehMake">Make (e.g. Toyota)</label>
+                                        <input type="text" id="vehMake" value="Toyota" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="vehModel">Model (e.g. Prius)</label>
+                                        <input type="text" id="vehModel" value="Prius" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="vehCapacity">Capacity</label>
+                                        <input type="number" id="vehCapacity" value="4" min="1" max="15">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-accent btn-sm">Register Vehicle</button>
+                            </form>
+                        </div>
+
+                        <!-- DRIVER ASSIGNED RIDES & ACTIONS -->
+                        <div class="card-box">
+                            <div class="flex-between">
+                                <h4>3. Driver Assigned Rides & Lifecycle Controls</h4>
+                                <button type="button" class="btn btn-xs btn-outline" id="btnLoadDriverRides">🔄 Refresh Assigned Trips</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table" id="tableDriverRides">
+                                    <thead>
+                                        <tr>
+                                            <th>Ride ID</th>
+                                            <th>Pickup ➔ Dropoff</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="4" class="text-center">Log in as DRIVER and click refresh</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================= -->
+                    <!-- TAB 4: FARES & PAYMENT SERVICE (Port 8084) -->
+                    <!-- ========================================================= -->
+                    <div class="tab-pane" id="tab-payments">
+                        <div class="section-title">
+                            <h3>Fare Invoicing & Payment Processing</h3>
+                            <p>Settle completed ride invoices, generate cryptographic idempotency receipts, and inspect payment history.</p>
+                        </div>
+
+                        <div class="card-box">
+                            <h4>1. Process Payment for Fare</h4>
+                            <form id="formProcessPayment">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="payFareId">Fare UUID</label>
+                                        <input type="text" id="payFareId" placeholder="Paste Fare UUID (or created automatically on ride completion)" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="payAmount">Amount (LKR)</label>
+                                        <input type="number" step="0.01" id="payAmount" placeholder="e.g. 450.00" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="payMethod">Payment Method</label>
+                                        <select id="payMethod" class="custom-select">
+                                            <option value="CARD">💳 Credit / Debit Card (Simulated)</option>
+                                            <option value="CASH">💵 Cash on Delivery</option>
+                                            <option value="WALLET">📱 In-App Wallet</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="payIdempotencyKey">Idempotency Key (Safe Retry)</label>
+                                        <div class="inline-inputs">
+                                            <input type="text" id="payIdempotencyKey" readonly>
+                                            <button type="button" class="btn btn-xs btn-outline" onclick="generateNewIdempotencyKey()">🎲 New</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block" id="btnSubmitPayment">
+                                    <span>Process Payment & Generate Receipt</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- DIGITAL RECEIPT DISPLAY -->
+                        <div class="card-box hidden" id="digitalReceiptCard">
+                            <div class="receipt-container">
+                                <div class="receipt-header">
+                                    <span class="receipt-badge">PAID</span>
+                                    <h3>RideLink Official Receipt</h3>
+                                    <p class="receipt-sub">Simulated Microservice Transaction</p>
+                                </div>
+                                <div class="receipt-divider"></div>
+                                <div class="receipt-grid">
+                                    <div><strong>Transaction ID:</strong> <span id="rcptTxId">-</span></div>
+                                    <div><strong>Payment ID:</strong> <span id="rcptPaymentId">-</span></div>
+                                    <div><strong>Fare ID:</strong> <span id="rcptFareId">-</span></div>
+                                    <div><strong>Method:</strong> <span id="rcptMethod">-</span></div>
+                                    <div><strong>Date/Time:</strong> <span id="rcptTime">-</span></div>
+                                    <div><strong>Status:</strong> <span class="badge badge-success" id="rcptStatus">SUCCESS</span></div>
+                                </div>
+                                <div class="receipt-divider"></div>
+                                <div class="receipt-total-row">
+                                    <span>Total Paid:</span>
+                                    <span class="receipt-total-amount" id="rcptAmount">LKR 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PAYMENT HISTORY -->
+                        <div class="card-box">
+                            <div class="flex-between">
+                                <h4>2. My Payment History</h4>
+                                <button type="button" class="btn btn-xs btn-outline" id="btnLoadPaymentHistory">Refresh History</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table" id="tablePayments">
+                                    <thead>
+                                        <tr>
+                                            <th>Payment ID</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                            <th>Status</th>
+                                            <th>Timestamp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="5" class="text-center">Click refresh to load payment transactions</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================= -->
+                    <!-- TAB 5: PROFILE & IDENTITY -->
+                    <!-- ========================================================= -->
+                    <div class="tab-pane" id="tab-profile">
+                        <div class="section-title">
+                            <h3>Authenticated Profile</h3>
+                            <p>Current logged-in identity retrieved from Account Service (<code>GET /api/accounts/me</code>).</p>
+                        </div>
+
+                        <div id="unauthenticatedWarning" class="alert-box warning-alert">
+                            <span>🔒 You are not currently logged in. Please sign in or register to view your profile.</span>
+                        </div>
+
+                        <div id="profileDetailsCard" class="profile-card hidden">
+                            <div class="profile-header">
+                                <div class="avatar-circle" id="profileAvatar">U</div>
+                                <div class="profile-info-main">
+                                    <h4 id="profileNameDisplay">User Name</h4>
+                                    <p id="profileEmailDisplay">user@example.com</p>
+                                </div>
+                                <div class="badges-row">
+                                    <span class="badge" id="badgeRole">PASSENGER</span>
+                                    <span class="badge" id="badgeStatus">ACTIVE</span>
+                                </div>
+                            </div>
+
+                            <div class="profile-metadata-grid">
+                                <div class="meta-item">
+                                    <span class="meta-label">Account UUID</span>
+                                    <span class="meta-value copyable" id="profileAccountId" title="Click to copy">-</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Phone</span>
+                                    <span class="meta-value" id="profilePhoneDisplay">-</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Created At</span>
+                                    <span class="meta-value" id="profileCreatedDisplay">-</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Last Updated</span>
+                                    <span class="meta-value" id="profileUpdatedDisplay">-</span>
+                                </div>
+                            </div>
+
+                            <div class="update-profile-section">
+                                <h5>Update Profile Information</h5>
+                                <form id="formUpdateProfile">
+                                    <div class="form-group">
+                                        <label for="updateName">New Full Name</label>
+                                        <input type="text" id="updateName" placeholder="Update your name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="updatePhone">New Phone Number</label>
+                                        <input type="tel" id="updatePhone" placeholder="+94779876543">
+                                    </div>
+                                    <div class="button-row">
+                                        <button type="submit" class="btn btn-primary" id="btnSaveProfile">Save Changes</button>
+                                        <button type="button" class="btn btn-outline" id="btnRefreshProfile">🔄 Refresh</button>
+                                        <button type="button" class="btn btn-danger" id="btnLogout">Sign Out</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================= -->
+                    <!-- TAB 6: ADMIN CONSOLE -->
+                    <!-- ========================================================= -->
+                    <div class="tab-pane" id="tab-admin">
+                        <div class="section-title">
+                            <h3>System Administration</h3>
+                            <p>Admin endpoints to update user status and inspect live driver discovery.</p>
+                        </div>
+                        <div class="card-box">
+                            <h4>Account Status Override</h4>
+                            <form id="formAdminStatus">
+                                <div class="form-group">
+                                    <label for="adminTargetAccountId">Target Account UUID</label>
+                                    <input type="text" id="adminTargetAccountId" placeholder="Enter target account UUID" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="adminTargetStatus">New Account Status</label>
+                                    <select id="adminTargetStatus" class="custom-select" required>
+                                        <option value="ACTIVE">ACTIVE (Can log in and request rides)</option>
+                                        <option value="SUSPENDED">SUSPENDED (Temporarily blocked)</option>
+                                        <option value="DISABLED">DISABLED (Permanently deactivated)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="adminStatusReason">Reason / Notes</label>
+                                    <input type="text" id="adminStatusReason" placeholder="e.g. Policy violation">
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-block">
+                                    <span>Apply Status Change</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="card-box">
+                            <h4>Eligible Driver Discovery Test (Port 8082)</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Vehicle Type</label>
+                                    <select id="adminSearchVehType" class="custom-select">
+                                        <option value="CAR">Car</option>
+                                        <option value="VAN">Van</option>
+                                        <option value="TUK_TUK">Tuk-Tuk</option>
+                                        <option value="BIKE">Bike</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Radius (KM)</label>
+                                    <input type="number" id="adminSearchRadius" value="25">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-block" id="btnAdminSearchDrivers">
+                                🔍 Search Available Drivers in Colombo
+                            </button>
+                            <div id="adminDriversResult" class="margin-top"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: LIVE REST NETWORK INSPECTOR & JWT VIEWER -->
+            <section class="panel right-panel">
+                <div class="inspector-header">
+                    <div class="inspector-title">
+                        <span class="icon">⚡</span>
+                        <h3>Live REST Network Inspector</h3>
+                    </div>
+                    <button class="btn btn-xs btn-outline" id="btnClearLogs">Clear Log</button>
+                </div>
+
+                <!-- ACTIVE TOKEN VIEWER -->
+                <div class="jwt-viewer-box">
+                    <div class="jwt-header">
+                        <span class="jwt-title">Active Bearer JWT Token:</span>
+                        <button class="btn btn-xs btn-outline" id="btnCopyJwt">Copy</button>
+                    </div>
+                    <div class="jwt-token-display" id="jwtTokenDisplay">No active token. Please log in.</div>
+                </div>
+
+                <!-- REQUEST & RESPONSE CONSOLE -->
+                <div class="network-history">
+                    <div class="history-label">Live Interservice HTTP Logs</div>
+                    <div class="console-box" id="networkConsole">
+                        <div class="console-placeholder">Waiting for your first API call... (Try logging in or requesting a ride)</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- NETWORK CONFIG MODAL (FOR MULTI-PC SETUP) -->
+    <div id="configModal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>⚙️ Microservice Network Endpoint Configuration</h3>
+                <button type="button" class="btn-close" id="btnCloseConfig">✕</button>
+            </div>
+            <p class="modal-desc">Configure the Base URLs for each microservice. Use <code>localhost</code> when running on 1 PC, or enter your teammates' IPv4 addresses when distributed across 4 PCs.</p>
+            
+            <form id="formConfigEndpoints">
+                <div class="form-group">
+                    <label>Account Service URL (Port 8081)</label>
+                    <input type="text" id="cfgAccountUrl" value="http://localhost:8081" required>
+                </div>
+                <div class="form-group">
+                    <label>Driver Service URL (Port 8082)</label>
+                    <input type="text" id="cfgDriverUrl" value="http://localhost:8082" required>
+                </div>
+                <div class="form-group">
+                    <label>Ride Service URL (Port 8083)</label>
+                    <input type="text" id="cfgRideUrl" value="http://localhost:8083" required>
+                </div>
+                <div class="form-group">
+                    <label>Fare & Payment Service URL (Port 8084)</label>
+                    <input type="text" id="cfgFareUrl" value="http://localhost:8084" required>
+                </div>
+                <div class="button-row margin-top">
+                    <button type="submit" class="btn btn-primary">Save Endpoints</button>
+                    <button type="button" class="btn btn-outline" id="btnTestEndpoints">🔄 Test All 4 Services</button>
+                    <button type="button" class="btn btn-secondary" id="btnResetEndpoints">Reset to Localhost</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

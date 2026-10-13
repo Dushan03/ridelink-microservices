@@ -1,0 +1,49 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.eclipse/
+.project
+.classpath
+.settings/
+*.launch
+
+# H2 file-based databases
+*.db
+*.mv.db
+*.trace.db
+data/
+
+# Logs
+*.log
+logs/
+
+# Environment secrets (never commit real secrets)
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Spring Boot build output
+spring-boot-*.jar
+
+# Test coverage
+/htmlReport/
+/jacoco.exec
+
+# Local config overrides
+application-local.properties
+application-local.yml
