@@ -46,7 +46,8 @@ Write-Host "`n[3/5] Driver Service (8082) - Profile, Fleet and Availability..." 
 $dHeaders = @{ Authorization = "Bearer " + $dToken; "Content-Type" = "application/json" }
 $pHeaders = @{ Authorization = "Bearer " + $pToken; "Content-Type" = "application/json" }
 
-$profBody = @{ licenseNumber="B" + $ts; licenseExpiryDate="2030-12-31"; serviceArea="Colombo" } | ConvertTo-Json
+$testArea = "Colombo_" + $ts
+$profBody = @{ licenseNumber="B" + $ts; licenseExpiryDate="2030-12-31"; serviceArea=$testArea } | ConvertTo-Json
 $prof = Invoke-RestMethod -Uri "http://localhost:8082/api/drivers/profile" -Method POST -Headers $dHeaders -Body $profBody
 Write-Host "  Driver Profile Created. License:" $prof.licenseNumber -ForegroundColor Green
 
@@ -58,7 +59,7 @@ $vehActiveUrl = "http://localhost:8082/api/drivers/me/vehicles/" + $veh.id + "/a
 Invoke-RestMethod -Uri $vehActiveUrl -Method PATCH -Headers $dHeaders | Out-Null
 Write-Host "  Vehicle Activated : True" -ForegroundColor Green
 
-$locBody = @{ serviceArea="Colombo"; currentLatitude=6.9344; currentLongitude=79.8428 } | ConvertTo-Json
+$locBody = @{ serviceArea=$testArea; currentLatitude=6.9344; currentLongitude=79.8428 } | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:8082/api/drivers/me/location" -Method PATCH -Headers $dHeaders -Body $locBody | Out-Null
 Write-Host "  Simulated Location: (6.9344, 79.8428)" -ForegroundColor Green
 
@@ -81,7 +82,7 @@ $rideReq = @{
     destinationName = "Galle Face Green";
     destinationLatitude = 6.9271;
     destinationLongitude = 79.8446;
-    serviceArea = "Colombo";
+    serviceArea = $testArea;
     requestedVehicleType = "CAR";
     estimatedDistanceKm = 5.5;
     estimatedDurationMinutes = 15
